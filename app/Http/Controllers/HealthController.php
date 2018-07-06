@@ -9,7 +9,7 @@ class HealthController extends Controller
     public function index() {
     	return [
     		'web' => true, 
-    		'db' => true, 
+    		// 'db' => true, 
     		'redis' => true
     	];
     }

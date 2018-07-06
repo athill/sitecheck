@@ -55,6 +55,7 @@ class CheckAll extends Command
             $messages[$url] = [];
             $statuses = [];
             $latest = Site::where('url', $url)->orderBy('created_at', 'desc')->first();
+            $latest_statuses = $latest->statuses->toArray();
 
             if (array_key_exists(SiteCheckService::httpStatusKey, $response)) {
                 $this->error('Invalid status for site [' . $url . ']: ' . $response[SiteCheckService::httpStatusKey]);
@@ -64,6 +65,11 @@ class CheckAll extends Command
                     'message' => 'Invalid Status: ' . $response[SiteCheckService::httpStatusKey]
                 ];                
                 $statuses[] = $status;
+                $latest_status = $this->getStatus($latest_statuses, 'web');
+                if ($latest_status && $status['up'] != $latest_status['up']) {
+                    $messages[$url][] = $status['message'];    
+                }
+                
             } else {
                 $this->info('Response for url ['. $url . ']:' . json_encode($response));
                 foreach ($response as $key => $value) {
@@ -75,10 +81,10 @@ class CheckAll extends Command
                 }
             }
             // save or not
-            $save = is_null($latest);
+            $new = is_null($latest);
             // new site
-            if ($save) {
-                $messages[] = "New site [$url] with keys: " . json_encode(array_pluck($statuses, 'key'));
+            if ($new) {
+                $messages[$url][] = "New site [$url] with keys: " . json_encode(array_pluck($statuses, 'key'));
                 foreach ($statuses as $status) {
                     if (!$status['up']) {
                         $messages[$url][] = $status['key'] . ' is down!';
@@ -86,9 +92,8 @@ class CheckAll extends Command
                 }
             // existing site, check for differences
             } else {
-                $this->info('not saving ' . count($latest->statuses));
-                $latest_statuses = $latest->statuses->toArray();
-                $latest_keys = array_pluck($latest->statuses->toArray(), 'key');
+                
+                $latest_keys = array_pluck($latest_statuses, 'key');
                 $keys = array_pluck($statuses, 'key');
                 $set = array_unique(array_merge($keys, $latest_keys));
 
@@ -98,25 +103,32 @@ class CheckAll extends Command
                     // new key
                     if (!in_array($key, $latest_keys)) {
                         $messages[$url][] = '[' . $key . '] has been added';
+                        continue;
                     // removed key
                     } else if (!in_array($key, $keys)) {
                         $messages[$url][] = '[' . $key .  '] has been removed';
+                        continue;
                     // change in status
-                    } else if ($latest_statuses[]['up'] !== $statuses['up']) {
-                        $good = $status['up'];
-                        $previous = $good ? 'down' : 'up';
-                        $now = $good ? 'up' : 'down';
-
+                    } else {
+                        $status = $this->getStatus($statuses, $key);
+                        // print_r($status);
+                        $latest_status = $this->getStatus($latest_statuses, $key);
+                        // $latest_status = array_first($latest_statuses, function($value) use ($key)  {
+                        //     return $value['key'] === $key;
+                        // });    
+                        // print_r($latest_status);
+                        if ($status['up'] != $latest_status['up']) {
+                            $good = $status['up'];
+                            $previous = $good ? 'down' : 'up';
+                            $current = $good ? 'up' : 'down';
+                            $prelude = $good ? 'Yay!' : 'Danger:';
+                            $messages[$url][] =  "$prelude [$key] is $current, was $previous";                            
+                        }
                     }
                 }
-                // foreach ($latest->statuses() as $status) {
-                //     $this->info('status', $status>key);
-                //     # code...
-                // }
-                // 
             }
-
-            if ($save) {
+            print_r($messages);
+            if (count($messages[$url])) {
                 $this->info('saving ' .$url);
                 $site = new Site;
                 $site->url = $url;
@@ -124,9 +136,15 @@ class CheckAll extends Command
                 $site_id = $site->id;
                 $statuses = array_map(function($status) use ($site_id) { $status['site_id'] = $site_id; return $status; }, $statuses);
                 Status::insert($statuses);
+            } else {
+                $this->info('not saving' . $url);
             }
-            
-
         }
+    }
+
+    private function getStatus(array $statuses, string $key) {
+        return array_first($statuses, function($value) use ($key)  {
+            return $value['key'] === $key;
+        });        
     }
 }
