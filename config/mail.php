@@ -60,6 +60,9 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    //// custom
+    'to' => env('MAIL_TO', 'me@example.com'),
+
     /*
     |--------------------------------------------------------------------------
     | E-Mail Encryption Protocol

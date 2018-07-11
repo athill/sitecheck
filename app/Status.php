@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Status extends Model
 {
     //
+    protected $fillable = ['up', 'message'];
 
     public function site() {
     	$this->belongsTo('App\Site');
