@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 
 use App\Site;
@@ -87,6 +88,18 @@ class SiteCheckService {
         }
         return $sites;
     } 
+
+    public function range(Carbon $start=null, Carbon $end=null) {
+        $checks = Check::query();
+        if (is_null($start) && is_null($end)) {
+            $end = Carbon::now();
+            $start = $end->subDay(1);
+        }
+        $checks->whereBetween('created_at', [$start, $end]);
+
+        $result = $checks->with('sites', 'sites.statuses')->get();
+        return $result;
+    }
 
     protected function getStatuses(string $url, array $latest_statuses) {
         $response = $this->checkSite($url);
