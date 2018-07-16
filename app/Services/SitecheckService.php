@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
@@ -9,7 +9,7 @@ use App\Site;
 use App\Check;
 use App\Status;
 
-class SiteCheckService {
+class SitecheckService {
 
 	const httpStatusKey = 'http_status';
     protected $command;
@@ -36,7 +36,7 @@ class SiteCheckService {
             if ($new) {
                 $messages[] = "New site [$url] with keys: " . json_encode(array_pluck($statuses, 'key'));
                 foreach ($statuses as $status) {
-                    if (!$status['up']) {
+                    if (!isset($status['up'])) {
                         $messages[] = $status['key'] . ' is down!';
                     }
                 }
@@ -69,7 +69,7 @@ class SiteCheckService {
                             $previous = $good ? 'down' : 'up';
                             $current = $good ? 'up' : 'down';
                             $prelude = $good ? 'Yay!' : 'Danger:';
-                            $messages[] =  "$prelude [$key] is $current, was $previous";                            
+                            $messages[] =  "$prelude [$key] is $current, was $previous";     
                         }
                     }
                 }
@@ -91,9 +91,12 @@ class SiteCheckService {
 
     public function range(Carbon $start=null, Carbon $end=null) {
         $checks = Check::query();
-        if (is_null($start) && is_null($end)) {
-            $end = Carbon::now();
-            $start = $end->subDay(1);
+        $now = Carbon::now();
+        if (is_null($start)) {
+            $start = $now->subDay(1);
+        }
+        if (is_null($end)) {
+            $end = $now;
         }
         $checks->whereBetween('created_at', [$start, $end]);
 
@@ -103,16 +106,21 @@ class SiteCheckService {
 
     protected function getStatuses(string $url, array $latest_statuses) {
         $response = $this->checkSite($url);
-        // $messages = [];
+        
         $statuses = [];
 
         if (array_key_exists(self::httpStatusKey, $response)) {
-            // $this->error('Invalid status for site [' . $url . ']: ' . $response[self::httpStatusKey]);
+            $up = $response[self::httpStatusKey] === 200;
+            
             $status = [
                 'key' => 'web',
-                'up' => false,
-                'message' => 'Invalid Status: ' . $response[self::httpStatusKey]
-            ];                
+                'up' => $up
+            ];
+            if (!$up) {
+                $status['message'] = 'Invalid Status: ' . $response[self::httpStatusKey];
+            } else {
+                $status['message'] = 'Not a key-value response, but site appears to be up';
+            }
             $statuses[] = $status;
             $latest_status = $this->getStatusByKey($latest_statuses, 'web');
 
@@ -163,7 +171,12 @@ class SiteCheckService {
         }
 
         $data = file_get_contents($url);
-        return json_decode($data, true);
+        $result = json_decode($data, true);
+
+        if (is_null($result)) {
+            return [ self::httpStatusKey => 200 ];   
+        }
+        return $result;
     }
 
     public function getHttpStatus($url) {

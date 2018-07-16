@@ -4,16 +4,16 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-use App\Service\SiteCheckService;
+use App\Services\SitecheckService;
 
-class CheckSite extends Command
+class SitecheckSite extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'check:site {site}';
+    protected $signature = 'sitecheck:site {site} {--p|publish} {--s|save}';
 
     /**
      * The console command description.
@@ -43,12 +43,15 @@ class CheckSite extends Command
     public function handle()
     {
         $url = $this->argument('site');
-        $response = $this->service->checkSite($url);
-        if (array_key_exists(SiteCheckService::httpStatusKey, $response)) {
-            $this->error('Invalid status for site [' . $url . ']: ' . $response[SiteCheckService::httpStatusKey]);
-            return;
+        $publish = $this->option('publish');
+        $save = $this->option('save');        
+        $sites = $this->service->process([ $url ], $save, $publish);
+
+        foreach ($sites as $url => $data) {
+            $this->info('Notices for ' . $url);
+            foreach ($data['messages'] as $message) {
+                $this->info("\t$message");
+            }
         }
-        $data = file_get_contents($url);
-        $this->info(json_encode($data));
     }
 }

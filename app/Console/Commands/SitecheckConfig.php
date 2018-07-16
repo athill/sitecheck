@@ -9,16 +9,16 @@ use Illuminate\Console\Command;
 use App\Check;
 use App\Site;
 use App\Status;
-use App\Service\SiteCheckService;
+use App\Services\SitecheckService;
 
-class CheckAll extends Command
+class SitecheckConfig extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'check:all {--p|publish} {--s|save}';
+    protected $signature = 'sitecheck:config {--p|publish} {--s|save}';
 
     /**
      * The console command description.
@@ -56,7 +56,7 @@ class CheckAll extends Command
         $messages = []; //// messages for publication
         $configPath = storage_path() . '/data/config.json';
         $config = json_decode(file_get_contents($configPath), true); 
-        var_dump($config);
+        
         $sites = $this->service->process($config, $save, $publish);
 
         foreach ($sites as $url => $data) {

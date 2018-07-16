@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
+use App\Services\SiteCheckService;
+
 class SitecheckSummary extends Command
 {
     /**
@@ -11,7 +13,7 @@ class SitecheckSummary extends Command
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'sitecheck:summary';
 
     /**
      * The console command description.
