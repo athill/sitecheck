@@ -32,7 +32,7 @@ class SitecheckSite extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->service = new SiteCheckService(' ', $this->signature[0]);
+        $this->service = new SiteCheckService(explode(' ', $this->signature[0]));
     }
 
     /**

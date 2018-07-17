@@ -91,17 +91,35 @@ class SitecheckService {
 
     public function range(Carbon $start=null, Carbon $end=null) {
         $checks = Check::query();
-        $now = Carbon::now();
         if (is_null($start)) {
-            $start = $now->subDay(1);
+            $start = Carbon::now()->subWeek(3);
         }
         if (is_null($end)) {
-            $end = $now;
+            $end = Carbon::now();
         }
+        var_dump($start);
         $checks->whereBetween('created_at', [$start, $end]);
 
         $result = $checks->with('sites', 'sites.statuses')->get();
-        return $result;
+        $response = [];
+        foreach ($result as $check) {
+            // var_dump($check->sites()->get());
+            foreach ($check->sites()->get() as $site) {
+                if (!isset($response[$site->url])) {
+                    $response[$site->url] = [
+                        'keys' => [],
+                        'data' =>[]
+                    ];
+                }
+                foreach ($site->statuses()->get() as $status) {
+                    if (!in_array($status->key, $response[$site->url]['keys'])) {
+                        $response[$site->url]['keys'][] = $status->key;
+                    }
+                }
+            }
+        }
+        // var_dump($result);
+        return $response;
     }
 
     protected function getStatuses(string $url, array $latest_statuses) {

@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-use App\Services\SiteCheckService;
+use App\Services\SitecheckService;
 
 class SitecheckSummary extends Command
 {
@@ -14,6 +14,8 @@ class SitecheckSummary extends Command
      * @var string
      */
     protected $signature = 'sitecheck:summary';
+
+    private $service;
 
     /**
      * The console command description.
@@ -30,6 +32,8 @@ class SitecheckSummary extends Command
     public function __construct()
     {
         parent::__construct();
+        $this->service = new SiteCheckService();
+
     }
 
     /**
@@ -39,6 +43,7 @@ class SitecheckSummary extends Command
      */
     public function handle()
     {
-        //
+        $checks = $this->service->range();
+        var_dump($checks);
     }
 }
