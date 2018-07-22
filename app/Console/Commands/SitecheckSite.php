@@ -45,7 +45,7 @@ class SitecheckSite extends Command
         $url = $this->argument('site');
         $publish = $this->option('publish');
         $save = $this->option('save');        
-        $sites = $this->service->process([ $url ], $save, $publish);
+        $sites = $this->service->notifications([ $url ], $save, $publish);
 
         foreach ($sites as $url => $data) {
             $this->info('Notices for ' . $url);

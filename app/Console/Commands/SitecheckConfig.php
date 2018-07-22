@@ -57,7 +57,7 @@ class SitecheckConfig extends Command
         $configPath = storage_path() . '/data/config.json';
         $config = json_decode(file_get_contents($configPath), true); 
         
-        $sites = $this->service->process($config, $save, $publish);
+        $sites = $this->service->notifications($config, $save, $publish);
 
         foreach ($sites as $url => $data) {
             $this->info('Notices for ' . $url);

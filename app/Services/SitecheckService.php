@@ -23,7 +23,7 @@ class SitecheckService {
         return json_decode(file_get_contents($configPath), true); 
     }
 
-    public function process(array $urls, bool $save = false, bool $publish = false) {
+    public function notifications(array $urls, bool $save = false, bool $publish = false) {
         $sites = [];
         foreach ($urls as $url) {
             $latest = Site::where('url', $url)->orderBy('created_at', 'desc')->first();
@@ -79,6 +79,7 @@ class SitecheckService {
                 'statuses' => $statuses
             ];
         }
+        dd($sites);
         if ($save) {
             $this->save($sites);
         }
@@ -111,6 +112,8 @@ class SitecheckService {
                         'data' =>[]
                     ];
                 }
+
+                
                 foreach ($site->statuses()->get() as $status) {
                     if (!in_array($status->key, $response[$site->url]['keys'])) {
                         $response[$site->url]['keys'][] = $status->key;
@@ -155,7 +158,7 @@ class SitecheckService {
         return $statuses;        
     }
 
-    protected function save(array $sites) {
+    public function save(array $sites) {
         $check = new Check;
         $check->command = $this->command;
         $check->save();
