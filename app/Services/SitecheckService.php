@@ -26,9 +26,9 @@ class SitecheckService {
     public function notifications(array $urls, bool $save = false, bool $publish = false) {
         $sites = [];
         foreach ($urls as $url) {
-            $latest = Site::where('url', $url)->orderBy('created_at', 'desc')->first();
+            $latest = Site::latest($url);
             $messages = [];
-            $latest_statuses = (is_null($latest)) ? [] :  $latest->statuses()->get()->toArray();            
+            $latest_statuses = (is_null($latest)) ? [] :  $latest->statuses->toArray();            
             $statuses = $this->getStatuses($url, $latest_statuses);
             // save or not
             $new = is_null($latest);
@@ -79,7 +79,6 @@ class SitecheckService {
                 'statuses' => $statuses
             ];
         }
-        dd($sites);
         if ($save) {
             $this->save($sites);
         }
@@ -90,39 +89,65 @@ class SitecheckService {
         return $sites;
     } 
 
-    public function range(Carbon $start=null, Carbon $end=null) {
-        $checks = Check::query();
-        if (is_null($start)) {
-            $start = Carbon::now()->subWeek(3);
-        }
-        if (is_null($end)) {
-            $end = Carbon::now();
-        }
-        var_dump($start);
-        $checks->whereBetween('created_at', [$start, $end]);
+    public function summary(Carbon $start=null, Carbon $end=null) {
+        $result = Check::summary($start, $end);
 
-        $result = $checks->with('sites', 'sites.statuses')->get();
+        $statuses = [];
         $response = [];
-        foreach ($result as $check) {
+        $messages = [];
+        foreach ($result as $i => $check) {
             // var_dump($check->sites()->get());
-            foreach ($check->sites()->get() as $site) {
-                if (!isset($response[$site->url])) {
-                    $response[$site->url] = [
-                        'keys' => [],
-                        'data' =>[]
-                    ];
+            foreach ($check->sites as $site) {
+                $url = $site->url;
+                if (!isset($statuses[$url])) {
+                    $statuses[$url] = [];                    
                 }
+                if (!isset($messages[$url])) {
+                    $messages[$url] = [];                    
+                }                
 
-                
-                foreach ($site->statuses()->get() as $status) {
-                    if (!in_array($status->key, $response[$site->url]['keys'])) {
-                        $response[$site->url]['keys'][] = $status->key;
+                // if (!isset($response[$site->url])) {
+                //     $response[$site->url] = [
+                //         'keys' => [],
+                //         'data' =>[]
+                //     ];
+                // }
+                //// find keys that have been removed
+                $current_keys = array_pluck($site->statuses->toArray(), 'key');
+                if ($i > 0) {
+                    foreach ($statuses[$url] as $key => $value) {
+                        if (!in_array($key, $current_keys)) {
+                            $messages[$url][] = 'Key ' . $key . ' removed as of ' . $check->created_at->toDateTimeString();
+                            unset($statuses[$url][$key]);
+                        }
+                    }
+                }
+                foreach ($site->statuses as $status) {
+                    if ($i === 0) {
+                        $statuses[$url][$status->key] = [
+                            'up' => $status->up,
+                            'date' => $status->created_at
+                        ];       
+                    } else {
+                        if (!in_array($status->key, array_keys($statuses[$url]))) {
+                            $messages[$url] = 'Key ' . $status->key . ' has been added as of ' . $check->created_at->toDateTimeString();
+                        } else if ($status->up !== $statuses[$url][$key]['up']) {
+                            if ($status->up) {
+                                $messages[$url][] = 'Key ' . $status->key . ' was down from ' . 
+                                    $statuses[$url][$key]['date']->toDateTimeString() . ' to ' . $status->created_at->toDateTimeString();
+                            }
+                            $statuses[$url][$key] = [
+                                'up' => $status->up,
+                                'date' => $status->created_at
+                            ];
+
+                        }
                     }
                 }
             }
         }
         // var_dump($result);
-        return $response;
+        return $messages;
     }
 
     protected function getStatuses(string $url, array $latest_statuses) {

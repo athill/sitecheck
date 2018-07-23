@@ -43,7 +43,7 @@ class SitecheckSummary extends Command
      */
     public function handle()
     {
-        $checks = $this->service->range();
+        $checks = $this->service->summary();
         var_dump($checks);
     }
 }
