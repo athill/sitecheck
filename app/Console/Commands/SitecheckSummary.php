@@ -44,6 +44,13 @@ class SitecheckSummary extends Command
     public function handle()
     {
         $checks = $this->service->summary();
-        var_dump($checks);
+        
+        $this->info("Summary for ". $checks['start'] . ' to ' . $checks['end'] . "\n");
+        foreach ($checks['messages'] as $url => $data) {
+            $this->info('Notices for ' . $url);
+            foreach ($data as $message) {
+                $this->info("\t$message");
+            }
+        } 
     }
 }

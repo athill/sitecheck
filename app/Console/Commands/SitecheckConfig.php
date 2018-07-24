@@ -65,8 +65,5 @@ class SitecheckConfig extends Command
                 $this->info("\t$message");
             }
         }
-        // i         
     }
-
-
 }

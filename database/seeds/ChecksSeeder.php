@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use App\Site;
 use App\Check;
 use App\Status;
-use App\Services\SitecheckService;
 
 class ChecksSeeder extends Seeder
 {
@@ -38,10 +37,6 @@ class ChecksSeeder extends Seeder
     		'redis'
     	];
 
-    	
-    	// $checks = [];
-    	// $service = new SitecheckService('generated');
-
     	for ($i = 0; $i < $generate; $i++) {
             $check = new Check;
             $datetime = Carbon::now()->subMinutes(($generate - $i) * $delay);
@@ -71,14 +66,8 @@ class ChecksSeeder extends Seeder
                     $status->updated_at = $datetime;  
                     $status->site_id = $site->id;                  
                     $status->save();
-    				// $site['statuses'][] = [
-    				// 	'key' => $key,
-    				// 	'up' => $siteUp && $keyUp
-    				// ];
     			}
-    			// $sites[$endpoint] = $site;
     		}
-    		// $service->save($sites);	
     	}
     }
 }

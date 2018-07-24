@@ -91,12 +91,16 @@ class SitecheckService {
 
     public function summary(Carbon $start=null, Carbon $end=null) {
         $result = Check::summary($start, $end);
-
         $statuses = [];
         $response = [];
         $messages = [];
+        $first = null;
+        $last = null;
         foreach ($result as $i => $check) {
-            // var_dump($check->sites()->get());
+            if ($i === 0) {
+                $first = $check->created_at;    
+            }
+            $last = $check->created_at;
             foreach ($check->sites as $site) {
                 $url = $site->url;
                 if (!isset($statuses[$url])) {
@@ -105,13 +109,6 @@ class SitecheckService {
                 if (!isset($messages[$url])) {
                     $messages[$url] = [];                    
                 }                
-
-                // if (!isset($response[$site->url])) {
-                //     $response[$site->url] = [
-                //         'keys' => [],
-                //         'data' =>[]
-                //     ];
-                // }
                 //// find keys that have been removed
                 $current_keys = array_pluck($site->statuses->toArray(), 'key');
                 if ($i > 0) {
@@ -123,19 +120,27 @@ class SitecheckService {
                     }
                 }
                 foreach ($site->statuses as $status) {
+                    //// add initial status
                     if ($i === 0) {
                         $statuses[$url][$status->key] = [
                             'up' => $status->up,
                             'date' => $status->created_at
                         ];       
+                    //// check status changes
                     } else {
+                        //// new key
                         if (!in_array($status->key, array_keys($statuses[$url]))) {
                             $messages[$url] = 'Key ' . $status->key . ' has been added as of ' . $check->created_at->toDateTimeString();
+                        //// change in key
                         } else if ($status->up !== $statuses[$url][$key]['up']) {
+                            $key = $status->key;
+                            //// status has been down and is now up, add a message
                             if ($status->up) {
-                                $messages[$url][] = 'Key ' . $status->key . ' was down from ' . 
-                                    $statuses[$url][$key]['date']->toDateTimeString() . ' to ' . $status->created_at->toDateTimeString();
+                                $statuses_datestring = $statuses[$url][$key]['date']->toDateTimeString();
+                                $current_datestring = $status->created_at->toDateTimeString();                                
+                                $messages[$url][] = "Key $status->key  was down from $statuses_datestring to $current_datestring"; 
                             }
+                            //// regardless update statuses array
                             $statuses[$url][$key] = [
                                 'up' => $status->up,
                                 'date' => $status->created_at
@@ -146,8 +151,11 @@ class SitecheckService {
                 }
             }
         }
-        // var_dump($result);
-        return $messages;
+        return [
+            'start' => $first,
+            'end' => $last,
+            'messages' => $messages
+        ];
     }
 
     protected function getStatuses(string $url, array $latest_statuses) {

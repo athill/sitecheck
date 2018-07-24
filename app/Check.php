@@ -21,7 +21,6 @@ class Check extends Model
         if (is_null($end)) {
             $end = Carbon::now();
         }
-        var_dump($start);
         $checks->whereBetween('created_at', [$start, $end]);
 
         return $checks->with('sites', 'sites.statuses')->get();    	
