@@ -33,7 +33,6 @@ class SitecheckSummary extends Command
     {
         parent::__construct();
         $this->service = new SiteCheckService();
-
     }
 
     /**

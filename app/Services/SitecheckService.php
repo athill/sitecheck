@@ -151,11 +151,18 @@ class SitecheckService {
                 }
             }
         }
-        return [
+        $checks = [
             'start' => $first,
             'end' => $last,
             'messages' => $messages
         ];
+        //// TODO: fix this
+        $publish = true;
+        if ($publish) {
+            Mail::to(config('mail.to'))->send(new \App\Mail\Summary($checks));
+            
+        }        
+        return $checks;
     }
 
     protected function getStatuses(string $url, array $latest_statuses) {

@@ -24,3 +24,10 @@ Route::get('/email/notify', function() {
 	$notifications = $service->notifications($service->getConfig());
 	return new App\Mail\Notify($notifications);
 });
+
+
+Route::get('/email/summary', function() {
+	$service = new App\Services\SitecheckService;
+	$checks = $service->summary();
+	return new App\Mail\Summary($checks);
+});
