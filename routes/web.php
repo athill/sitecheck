@@ -11,23 +11,26 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'DashboardController@index');
 
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::get('/email/notify', function() {
-	$service = new App\Service\SiteCheckService;
-	$notifications = $service->notifications($service->getConfig());
-	return new App\Mail\Notify($notifications);
-});
 
 
-Route::get('/email/summary', function() {
-	$service = new App\Services\SitecheckService;
-	$checks = $service->summary();
-	return new App\Mail\Summary($checks);
-});
+
+
+//// email testing
+// Route::get('/email/notify', function() {
+// 	$service = new App\Service\SiteCheckService;
+// 	$notifications = $service->notifications($service->getConfig());
+// 	return new App\Mail\Notify($notifications);
+// });
+
+
+// Route::get('/email/summary', function() {
+// 	$service = new App\Services\SitecheckService;
+// 	$checks = $service->summary();
+// 	return new App\Mail\Summary($checks);
+// });

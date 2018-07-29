@@ -19,8 +19,18 @@ class SitecheckService {
     }
 
     public function getConfig() {
-        $configPath = storage_path() . '/data/config.json';
-        return json_decode(file_get_contents($configPath), true); 
+        $configPath = base_path('sitecheck-config.yml');
+        $data = yaml_parse_file($configPath); 
+        return $data;
+    }
+
+    public function latest() {
+        $config = $this->getConfig();
+        $result = [];
+        foreach ($config['endpoints'] as $url) {
+            $result[$url] = Site::latest($url);
+        }
+        return $result;
     }
 
     public function notifications(array $urls, bool $save = false, bool $publish = false) {
@@ -201,6 +211,7 @@ class SitecheckService {
     public function save(array $sites) {
         $check = new Check;
         $check->command = $this->command;
+        // dd($check);
         $check->save();
         foreach ($sites as $url => $data) {
             $statuses = $data['statuses'];

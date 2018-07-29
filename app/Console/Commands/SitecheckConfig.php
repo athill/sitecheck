@@ -38,7 +38,7 @@ class SitecheckConfig extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->service = new SiteCheckService(explode(' ', $this->signature[0]));
+        $this->service = new SiteCheckService('config');
     }
 
     /**
@@ -54,13 +54,14 @@ class SitecheckConfig extends Command
             $this->info("Purely reporting, use -p/--publish to notify users and -s/--save to save");
         }
         $messages = []; //// messages for publication
-        $configPath = storage_path() . '/data/config.json';
-        $config = json_decode(file_get_contents($configPath), true); 
-        
-        $sites = $this->service->notifications($config, $save, $publish);
+        // $configPath = storage_path() . '/data/config.json';
+        // $config = json_decode(file_get_contents($configPath), true); 
+        $config = $this->service->getConfig();
+
+        $sites = $this->service->notifications($config['endpoints'], $save, $publish);
 
         foreach ($sites as $url => $data) {
-            $this->info('Notices for ' . $url);
+            $this->info('Notices for ' . $url . ' (' . count($data['messages']) . ')');
             foreach ($data['messages'] as $message) {
                 $this->info("\t$message");
             }
