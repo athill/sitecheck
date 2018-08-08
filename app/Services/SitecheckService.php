@@ -99,8 +99,14 @@ class SitecheckService {
         return $sites;
     } 
 
-    public function summary(Carbon $start=null, Carbon $end=null) {
-        $result = Check::summary($start, $end);
+    public function summary($options=[]) {
+        $defaultOptions = [
+            'start' => Carbon::now()->subWeek(5),
+            'end' => Carbon::now(),
+            'publish' => false
+        ];
+        $options = array_merge($options, $defaultOptions);
+        $result = Check::summary($options['start'], $options['end']);
         $statuses = [];
         $response = [];
         $messages = [];
@@ -140,7 +146,8 @@ class SitecheckService {
                     } else {
                         //// new key
                         if (!in_array($status->key, array_keys($statuses[$url]))) {
-                            $messages[$url] = 'Key ' . $status->key . ' has been added as of ' . $check->created_at->toDateTimeString();
+
+                            $messages[$url][] = 'Key ' . $status->key . ' has been added as of ' . $check->created_at->toDateTimeString() . ' and is ' . ($status->up ? 'up' : 'down');
                         //// change in key
                         } else if ($status->up !== $statuses[$url][$key]['up']) {
                             $key = $status->key;
@@ -167,8 +174,7 @@ class SitecheckService {
             'messages' => $messages
         ];
         //// TODO: fix this
-        $publish = true;
-        if ($publish) {
+        if ($options['publish']) {
             Mail::to(config('mail.to'))->send(new \App\Mail\Summary($checks));
             
         }        
