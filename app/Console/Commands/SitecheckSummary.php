@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 use App\Services\SitecheckService;
@@ -13,7 +14,10 @@ class SitecheckSummary extends Command
      *
      * @var string
      */
-    protected $signature = 'sitecheck:summary';
+    protected $signature = 'sitecheck:summary 
+        {--p|publish : Whether to send an email notification } 
+        {--start='.null.' : Start date, defualt is 24 hours ago } 
+        {--end='.null.' : End date, default in now }';
 
     private $service;
 
@@ -42,7 +46,12 @@ class SitecheckSummary extends Command
      */
     public function handle()
     {
-        $checks = $this->service->summary();
+        $options = [
+            'publish' => $this->option('publish'),
+            'start' => $this->getDate($this->option('start'), 'start'),
+            'end' => $this->getDate($this->option('end'), 'end')
+        ];
+        $checks = $this->service->summary($options);
         
         $this->info("Summary for ". $checks['start'] . ' to ' . $checks['end'] . "\n");
         foreach ($checks['messages'] as $url => $data) {
@@ -51,5 +60,17 @@ class SitecheckSummary extends Command
                 $this->info("\t$message");
             }
         } 
+    }
+
+    private function getDate($datestring, string $key) {
+        if (is_null($datestring)) {
+            return null;
+        }
+        try {
+            return new Carbon($datestring);
+        } catch (\Exception $e) {
+            $this->error('Invaid value for '.$key);
+            exit(1);
+        }
     }
 }
