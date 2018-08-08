@@ -13,14 +13,9 @@ class Check extends Model
     	return $this->hasMany('App\Site');
     }
 
-    public static function summary($start=null, $end=null) {
+    public static function summary($start, $end) {
         $checks = Check::query();
-        if (is_null($start)) {
-            $start = Carbon::now()->subWeek(3);
-        }
-        if (is_null($end)) {
-            $end = Carbon::now();
-        }
+ 
         $checks->whereBetween('created_at', [$start, $end]);
 
         return $checks->with('sites', 'sites.statuses')->get();    	
