@@ -1,6 +1,0 @@
----
-
-version: 1.0
-endpoints: 
-  - http://sitecheck.test/api/health
-  - foo

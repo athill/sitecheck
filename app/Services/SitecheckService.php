@@ -19,7 +19,7 @@ class SitecheckService {
     }
 
     public function getConfig() {
-        $configPath = base_path('sitecheck-config.yml');
+        $configPath = base_path('sitecheck.yml');
         $data = yaml_parse_file($configPath); 
         return $data;
     }
