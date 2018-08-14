@@ -24,11 +24,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('sitecheck:config', ['--publish' => true, '--save' => true])
-                 ->everyMinute();
+        $schedule->command('sitecheck:config --publish --save')->everyMinute();
 
-        $schedule->command('sitecheck:summary', ['--publish' => true])
-                 ->dailyAt('11:59');                 
+        $schedule->command('sitecheck:summary --publish')->dailyAt('11:59');
     }
 
     /**
