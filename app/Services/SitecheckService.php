@@ -92,7 +92,7 @@ class SitecheckService {
         if ($save) {
             $this->save($sites);
         }
-        if ($publish) {
+        if ($publish && count($messages)) {
             Mail::to(config('mail.to'))->send(new \App\Mail\Notify($sites));
             
         }
@@ -173,7 +173,6 @@ class SitecheckService {
             'end' => $last,
             'messages' => $messages
         ];
-        //// TODO: fix this
         if ($options['publish']) {
             Mail::to(config('mail.to'))->send(new \App\Mail\Summary($checks));
             
