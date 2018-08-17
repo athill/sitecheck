@@ -173,7 +173,7 @@ class SitecheckService {
             'end' => $last,
             'messages' => $messages
         ];
-        if ($options['publish']) {
+        if (isset($options['publish'])) {
             Mail::to(config('mail.to'))->send(new \App\Mail\Summary($checks));
             
         }        
