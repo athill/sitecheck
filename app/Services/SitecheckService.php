@@ -101,7 +101,7 @@ class SitecheckService {
 
     public function summary($options=[]) {
         $defaultOptions = [
-            'start' => Carbon::now()->subWeek(5),
+            'start' => Carbon::now()->subDay(1),
             'end' => Carbon::now(),
             'publish' => false
         ];
