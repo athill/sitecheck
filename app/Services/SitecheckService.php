@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Yaml\Yaml;
 
 use App\Site;
 use App\Check;
@@ -20,7 +21,7 @@ class SitecheckService {
 
     public function getConfig() {
         $configPath = base_path('sitecheck.yml');
-        $data = yaml_parse_file($configPath); 
+	$data = Yaml::parseFile($configPath); 
         return $data;
     }
 
