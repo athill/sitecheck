@@ -3,20 +3,23 @@
 @section('content')
 <div class="container">
 
+
 @foreach ($latest as $site)
-    <h2>{{ $site->url }} Last updated: {{  $site->created_at }} </h2>
-    <table border="1">
-    <tr>
-        <th>Status</th>
-        <th>Key</th>
-    </tr>
-    @foreach ($site->statuses as $status)
+    @if (!is_null($site)) 
+        <h2>{{ $site->url }} Last updated: {{  $site->created_at }} </h2>
+        <table border="1">
         <tr>
-            <td>{{ $status->key }}</td> 
-            <td>{{ $status->up ? 'UP' : 'DOWN' }}</td>
+            <th>Status</th>
+            <th>Key</th>
         </tr>
-    @endforeach
-    </table>
+        @foreach ($site->statuses as $status)
+            <tr>
+                <td>{{ $status->key }}</td> 
+                <td>{{ $status->up ? 'UP' : 'DOWN' }}</td>
+            </tr>
+        @endforeach
+        </table>
+    @endif
 @endforeach
 </div>
 @endsection
