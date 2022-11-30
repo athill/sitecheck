@@ -11,6 +11,7 @@ class DashboardController extends Controller
     public function index() {
     	$service = new SitecheckService;
     	$latest = $service->latest();
+
     	return view('dashboard')->with('latest', $latest);
     }
 }
